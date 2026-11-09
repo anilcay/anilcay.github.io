@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:title" content="Ahmet Anıl Çay — Games">
+<meta property="og:description" content="Unity / C# game developer. Steal &amp; Run, Luge Rush and Tether Rush.">
+<meta property="og:image" content="https://anilcay.github.io/media/steal-maze.jpg">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Ahmet Anıl Çay — Games</title>
+<meta name="description" content="Game development portfolio of Ahmet Anıl Çay: Unity / C# projects Steal &amp; Run, Luge Rush and Tether Rush.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a race-HUD header, then each game gets a full-bleed band painted in its own palette; the page around them stays quiet. */
+:root {
+  --bg: #EEF1EC;
+  --surface: #FFFFFF;
+  --ink: #131A15;
+  --muted: #56615A;
+  --line: #D2D9D1;
+  --accent: #D9531A;
+  --display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --body: "Public Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  --wrap: 1120px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1311; --surface: #171C19; --ink: #E8EDE7; --muted: #96A299; --line: #29312C; --accent: #FF7C40;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1311; --surface: #171C19; --ink: #E8EDE7; --muted: #96A299; --line: #29312C; --accent: #FF7C40;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.wrap {
+  max-width: var(--wrap); margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+}
+.measure { max-width: 64ch; }
+
+/* ---------- Hero ---------- */
+.hero { padding-block: 56px 40px; }
+.hero-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 40px; align-items: end;
+}
+.hero .eyebrow { color: var(--accent); }
+.hero h1 {
+  font-size: clamp(2.6rem, 7.4vw, 5.6rem); line-height: .95;
+  font-weight: 850; font-style: italic; font-stretch: 125%; letter-spacing: -.02em;
+  margin-top: 14px;
+}
+.hero .lede { font-size: 1.12rem; color: var(--ink); margin-top: 22px; }
+.hero .lede + .lede { color: var(--muted); font-size: 1rem; margin-top: 12px; }
+.portrait {
+  width: 100%; max-width: 260px; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 30%;
+  border-radius: 6px; display: block; justify-self: end;
+  filter: saturate(.92);
+}
+.links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  padding: 10px 14px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--surface); color: var(--ink); text-decoration: none; cursor: pointer;
+  transition: border-color .15s, transform .15s;
+}
+.btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn .note { color: var(--muted); font-weight: 400; }
+.btn.primary .note { color: inherit; opacity: .7; }
+
+/* HUD strip */
+.hud {
+  margin-top: 40px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line);
+}
+.hud div { padding: 14px 16px 14px 0; display: grid; gap: 2px; }
+.hud div + div { padding-left: 16px; border-left: 1px solid var(--line); }
+.hud b {
+  font-family: var(--display); font-style: italic; font-stretch: 112%; font-weight: 800;
+  font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.hud span { font-size: 13px; color: var(--muted); }
+
+/* project index */
+.index { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 22px; }
+.index a {
+  font-family: var(--mono); font-size: 13px; text-decoration: none; color: var(--muted);
+  border-bottom: 1px solid transparent;
+}
+.index a:hover { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* ---------- Game bands ---------- */
+.band { background: var(--b-bg); color: var(--b-ink); padding-block: 64px 72px; position: relative; }
+.band .eyebrow { color: var(--b-muted); }
+.band h2 {
+  font-size: clamp(2.4rem, 6vw, 4.4rem); font-style: italic; font-weight: 900; font-stretch: 125%;
+  letter-spacing: -.02em; line-height: 1; margin-top: 10px;
+}
+.band .pitch { font-size: 1.12rem; margin-top: 16px; color: var(--b-ink); }
+.band h3 {
+  font-size: 13px; font-family: var(--mono); font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--b-acc);
+}
+.band .muted { color: var(--b-muted); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.chip {
+  font-family: var(--mono); font-size: 12px; padding: 5px 10px; border-radius: 3px;
+  border: 1px solid var(--b-line); color: var(--b-ink); white-space: nowrap;
+}
+.built { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px; margin-top: 40px; }
+.built > div { min-width: 0; display: grid; gap: 8px; align-content: start; }
+.built p { color: var(--b-ink); opacity: .9; font-size: 15px; }
+.gallery { display: grid; gap: 10px; margin-top: 40px; }
+.gallery button {
+  padding: 0; border: 0; background: none; cursor: zoom-in; display: grid; gap: 6px; text-align: left; color: var(--b-muted);
+  font: 12px/1.4 var(--mono);
+}
+.gallery img { width: 100%; height: auto; display: block; border-radius: 4px; transition: transform .2s; }
+.portrait { height: auto; }
+.luge .gallery img { aspect-ratio: 16 / 9; object-fit: cover; }
+.tether .gallery img { aspect-ratio: 9 / 16; object-fit: cover; }
+.gallery button:hover img { transform: translateY(-2px); }
+.band-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px; }
+.band-links a {
+  font-family: var(--mono); font-size: 13px; font-weight: 600; text-decoration: none;
+  padding: 10px 14px; border-radius: 4px; border: 1px solid var(--b-line); color: var(--b-ink);
+  transition: border-color .15s, background .15s;
+}
+.band-links a:first-child { background: var(--b-acc); color: var(--b-bg); border-color: var(--b-acc); }
+.band-links a:hover { border-color: var(--b-acc); }
+video { display: block; width: 100%; max-width: 100%; background: #000; border-radius: 6px; }
+
+/* Steal & Run: night suburb, streetlamp amber, police red/blue */
+.steal {
+  --b-bg: #0B1330; --b-ink: #EEF1FA; --b-muted: #9AA6C8; --b-line: #263467;
+  --b-acc: #F6B93B; --b-red: #F0525A; --b-blue: #5B8CFF;
+  padding-top: 72px;
+}
+.steal::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px;
+  background: linear-gradient(90deg, var(--b-red) 0 50%, var(--b-blue) 50% 100%);
+}
+.featured { display: inline-flex; align-items: center; gap: 8px; color: var(--b-acc); }
+.featured::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--b-acc); box-shadow: 0 0 12px var(--b-acc); }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.badge {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 3px;
+  background: var(--b-acc); color: #0B1330; white-space: nowrap;
+}
+.badge.ghost { background: transparent; color: var(--b-ink); border: 1px solid var(--b-line); font-weight: 400; }
+.steal-hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 36px; margin-top: 36px; align-items: start; }
+.steal-hero figure { margin: 0; display: grid; gap: 8px; }
+.steal-hero img { width: 100%; height: auto; display: block; border-radius: 6px; }
+.steal-hero figcaption { font: 12px/1.4 var(--mono); color: var(--b-muted); }
+.cone { display: grid; gap: 14px; }
+.cone dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; border-top: 1px solid var(--b-line); padding-top: 14px; }
+.cone dt {
+  font-family: var(--display); font-style: italic; font-weight: 850; font-stretch: 115%;
+  font-size: 1.7rem; line-height: 1; color: var(--b-acc); font-variant-numeric: tabular-nums;
+}
+.cone dt.red { color: var(--b-red); }
+.cone dt.blue { color: var(--b-blue); }
+.cone dd { margin: 0; font-size: 14.5px; align-self: center; }
+.mine { margin-top: 36px; padding: 20px 22px; border: 1px solid var(--b-line); border-radius: 6px; display: grid; gap: 8px; }
+.mine p { font-size: 15px; }
+.steal .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.steal .gallery img { aspect-ratio: 16 / 9; object-fit: cover; }
+
+/* Luge Rush: forest track, yellow-black curbs, the player's orange sled */
+.luge {
+  --b-bg: #16301C; --b-ink: #F2F6EB; --b-muted: #A8BFA4; --b-line: #36573C;
+  --b-acc: #F5C518; --b-acc2: #FF7A2E;
+}
+.luge::before, .luge::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 12px;
+  background: repeating-linear-gradient(90deg, #F5C518 0 44px, #111411 44px 88px);
+}
+.luge::before { top: 0; }
+.luge::after { bottom: 0; }
+.luge .video-wrap { margin-top: 32px; }
+.luge .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.luge .status { color: var(--b-acc2); }
+
+/* Tether Rush: slate facility, peach + violet cores, cyan tether */
+.tether {
+  --b-bg: #0D1722; --b-ink: #F5F2E9; --b-muted: #8798A8; --b-line: #2B3D50;
+  --b-acc: #42DFF5; --b-peach: #FFB48F; --b-violet: #B5A4FF;
+}
+.tether-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 48px; margin-top: 36px; align-items: start; }
+.tether video { aspect-ratio: 9 / 16; object-fit: cover; }
+.tether-mark { display: flex; align-items: center; gap: 0; margin-top: 18px; height: 20px; }
+.tether-mark i { width: 18px; height: 18px; border-radius: 50%; display: block; }
+.tether-mark i:first-child { background: var(--b-peach); }
+.tether-mark i:last-child { background: var(--b-violet); }
+.tether-mark span { height: 3px; width: 96px; background: var(--b-acc); border-radius: 2px; }
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--b-line); }
+.metrics div { padding: 18px 16px 18px 0; border-bottom: 1px solid var(--b-line); display: grid; gap: 4px; }
+.metrics div:nth-child(even) { padding-left: 16px; border-left: 1px solid var(--b-line); }
+.metrics b {
+  font-family: var(--display); font-style: italic; font-weight: 850; font-stretch: 115%;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem); line-height: 1; color: var(--b-acc); font-variant-numeric: tabular-nums;
+}
+.metrics div:nth-child(2) b { color: var(--b-peach); }
+.metrics div:nth-child(3) b { color: var(--b-violet); }
+.metrics div:nth-child(4) b { color: var(--b-ink); }
+.metrics span { font-size: 14px; color: var(--b-ink); opacity: .85; }
+.footnote { font-size: 13px; color: var(--b-muted); margin-top: 10px; }
+.tether .built { margin-top: 32px; }
+.tether .gallery { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+/* ---------- Plain sections ---------- */
+.section { padding-block: 72px 24px; }
+.section-head { display: grid; gap: 10px; margin-bottom: 32px; }
+.section-head .eyebrow { color: var(--accent); }
+.section-head h2 { font-size: clamp(1.9rem, 4.2vw, 2.8rem); font-weight: 800; font-stretch: 112%; font-style: italic; line-height: 1.05; }
+.section-head p { color: var(--muted); }
+
+.pipeline { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; counter-reset: step; }
+.pipeline li { counter-increment: step; padding: 18px 18px 18px 0; border-top: 2px solid var(--ink); display: grid; gap: 8px; align-content: start; min-width: 0; }
+.pipeline li + li { padding-left: 18px; }
+.pipeline li::before {
+  content: counter(step, decimal-leading-zero); font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600;
+}
+.pipeline b { font-family: var(--display); font-stretch: 108%; font-size: 1.05rem; line-height: 1.25; }
+.pipeline p { font-size: 14px; color: var(--muted); }
+.tools-used { margin-top: 28px; font-size: 15px; color: var(--muted); }
+.tools-used strong { color: var(--ink); font-weight: 600; }
+
+.two-col { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 56px; }
+.xp { display: grid; gap: 0; }
+.xp article { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 16px; padding-block: 16px; border-top: 1px solid var(--line); }
+.xp time { font-family: var(--mono); font-size: 12px; color: var(--muted); padding-top: 3px; font-variant-numeric: tabular-nums; }
+.xp h3 { font-family: var(--body); font-size: 16px; font-weight: 600; }
+.xp .org { color: var(--muted); font-size: 14px; }
+.xp p { font-size: 14.5px; margin-top: 6px; }
+.skills { display: grid; gap: 0; }
+.skills div { padding-block: 14px; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.skills h3 { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.skills p { font-size: 14.5px; }
+.col-title { font-family: var(--display); font-weight: 800; font-stretch: 110%; font-style: italic; font-size: 1.35rem; margin-bottom: 8px; }
+
+.contact { padding-block: 72px 64px; }
+.contact-box { border-top: 2px solid var(--ink); padding-top: 28px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
+.contact h2 { font-size: clamp(1.9rem, 4.6vw, 3.2rem); font-weight: 850; font-stretch: 120%; font-style: italic; line-height: 1; }
+.contact p { color: var(--muted); margin-top: 12px; }
+.email-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; }
+.email { font-family: var(--mono); font-size: 15px; user-select: all; }
+.toast { font-family: var(--mono); font-size: 12px; color: var(--accent); min-width: 6ch; }
+footer { padding-block: 0 40px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+/* lightbox */
+dialog {
+  border: 0; padding: 0; background: transparent; max-width: min(96vw, 1280px); max-height: 92vh;
+}
+dialog::backdrop { background: rgba(6, 9, 7, .88); }
+dialog img { max-width: 100%; max-height: 86vh; display: block; margin-inline: auto; border-radius: 4px; }
+dialog p { color: #E8EDE7; font: 13px/1.5 var(--mono); text-align: center; margin-top: 10px; }
+dialog button {
+  position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px));
+  background: #E8EDE7; color: #131A15; border: 0; border-radius: 4px; font: 600 13px var(--mono); padding: 8px 12px; cursor: pointer;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  .pipeline li, .pipeline li + li { padding-left: 0; padding-right: 0; }
+  .two-col { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .tether-grid { grid-template-columns: 240px minmax(0, 1fr); gap: 32px; }
+  .tether .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .hero { padding-block: 32px 28px; }
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .portrait { order: -1; justify-self: start; max-width: 140px; aspect-ratio: 1; border-radius: 50%; }
+  .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hud div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .hud div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .built { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .luge .gallery, .steal .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steal-hero { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .tether-grid { grid-template-columns: minmax(0, 1fr); }
+  .tether video { max-width: 300px; margin-inline: auto; }
+  .tether .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pipeline { grid-template-columns: minmax(0, 1fr); }
+  .xp article { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .contact-box { grid-template-columns: minmax(0, 1fr); }
+  .email-row { justify-content: flex-start; }
+  .band { padding-block: 48px 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Unity / C# game developer · İstanbul</p>
+        <h1>Ahmet Anıl Çay</h1>
+        <p class="lede measure">I build complete games in Unity: stealth AI with sight cones and patrols, arcade vehicle physics, bot opponents, online rooms, mobile optimization, and tests under every feature.</p>
+        <p class="lede measure">Final-year Computer Engineering student. Steal &amp; Run, my university team game, is hand-written C# with no AI tools. On my solo games I work like a small studio lead with a team of AI coding agents: design doc first, contracts between roles, tests as the definition of done.</p>
+        <div class="links">
+          <a class="btn primary" href="https://github.com/anilcay" target="_blank" rel="noopener">GitHub <span class="note">/anilcay ↗</span></a>
+          <a class="btn" href="https://www.linkedin.com/in/ahmet-an%C4%B1l-%C3%A7ay-69a007357" target="_blank" rel="noopener">LinkedIn ↗</a>
+          <button class="btn" type="button" id="copy-email-top" data-email="anilcay149@gmail.com">anilcay149@gmail.com <span class="note">copy</span></button>
+        </div>
+      </div>
+      <img class="portrait" src="media/portrait.jpg" alt="Portrait of Ahmet Anıl Çay" width="420" height="480">
+    </div>
+
+    <div class="hud" aria-label="At a glance">
+      <div><b>3</b><span>playable games: 1 team, 2 solo</span></div>
+      <div><b>0</b><span>AI tools in Steal &amp; Run's code</span></div>
+      <div><b>256/256</b><span>tests passing in Tether Rush</span></div>
+      <div><b>Jul 2027</b><span>expected graduation</span></div>
+    </div>
+    <nav class="index" aria-label="Projects">
+      <a href="#steal-and-run">Steal &amp; Run · mobile stealth</a>
+      <a href="#luge-rush">Luge Rush · PC racing</a>
+      <a href="#tether-rush">Tether Rush · Android runner</a>
+      <a href="#process">How I build</a>
+      <a href="#background">Experience & skills</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= STEAL & RUN ================= -->
+<section class="band steal" id="steal-and-run" aria-labelledby="steal-title">
+  <div class="wrap">
+    <p class="eyebrow"><span class="featured">Featured</span> · Mobile · isometric stealth puzzle · Unity 6 · Apr – Jun 2026</p>
+    <h2 id="steal-title">Steal &amp; Run</h2>
+    <div class="badges">
+      <span class="badge">Hand-written C# · no AI tools</span>
+      <span class="badge ghost">University project · team of 2</span>
+      <span class="badge ghost">Game design doc written by us</span>
+    </div>
+    <p class="pitch measure">A thief slips through suburban hedge mazes and houses at night. Read the guards' patrols, stay out of their flashlights, sneak past guard dogs, crack loot chests and hack electrical boxes, then reach the exit unseen.</p>
+
+    <div class="steal-hero">
+      <figure>
+        <img src="media/steal-maze.jpg" alt="Isometric hedge maze level with the thief, a guard, the kennel and the live timer" width="1071" height="602">
+        <figcaption>Level 1 · hedge maze with live run timer and mission list</figcaption>
+      </figure>
+      <div class="cone">
+        <h3>Two-layer detection</h3>
+        <p class="muted" style="font-size:15px">Enemies see with raycast vision cones and also sense a player who gets too close, whether or not they can see them.</p>
+        <dl>
+          <dt>70°</dt><dd>flashlight cone, checked with <code>Vector3.Angle</code> to the player's chest height</dd>
+          <dt>7 u</dt><dd>sight range; a raycast through a 1-unit wall breaks line of sight</dd>
+          <dt class="red">1.5 u</dt><dd>proximity "sixth sense" that detects even out of view</dd>
+          <dt class="blue">Hunt</dt><dd>on detection guards switch from patrol to a running chase; dogs chase faster</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="facts">
+      <span class="chip">3 levels</span><span class="chip">guards + guard dogs</span><span class="chip">3 hacking minigames</span><span class="chip">loot economy + costume shop</span><span class="chip">touch joystick</span>
+    </div>
+
+    <div class="built">
+      <div>
+        <h3>Enemy AI</h3>
+        <p>Guards and dogs move on NavMeshAgent between patrol points, each with its own wait time, so players learn the windows to slip through. Level 2 adds overlapping routes and dogs that rely on the proximity sense.</p>
+      </div>
+      <div>
+        <h3>Minigames & interaction</h3>
+        <p>Wire matching, memory cards and a timing task built on one shared minigame base class. Entering a chest's trigger opens a loot panel with synced sound; leaving resets it safely.</p>
+      </div>
+      <div>
+        <h3>Economy & persistence</h3>
+        <p>Loot value is added to a persistent bank balance and spent on costumes in a shop with a rotating showcase. Money, chosen costume and settings are saved with PlayerPrefs and applied on level load.</p>
+      </div>
+      <div>
+        <h3>Systems & feel</h3>
+        <p>Singleton managers for audio, timer and game state that survive scene loads and pause. AudioMixer sliders in decibels via <code>Mathf.Log10</code>, vibration toggle, safe-area UI, tutorial, jitter-free LateUpdate camera, and win and caught screens that freeze time.</p>
+      </div>
+    </div>
+
+    <div class="mine">
+      <h3>My part</h3>
+      <p>Built the levels, from the garden maze and house rooms to Levels 1–3, worked on the NPC guards, and handled the skybox, animation fixes and the inventory. My teammate Enes Çelik and I split the commits almost evenly (30 / 29) and wrote the game design document together.</p>
+    </div>
+
+    <div class="gallery" aria-label="Steal and Run screenshots">
+      <button type="button" data-full="media/steal-menu.jpg"><img src="media/steal-menu.jpg" alt="Main menu with the thief and a police officer" loading="lazy" width="1066" height="596">Main menu</button>
+      <button type="button" data-full="media/steal-levels.jpg"><img src="media/steal-levels.jpg" alt="Level select: Quiet House, Bank and Museum" loading="lazy" width="1064" height="599">Level select</button>
+      <button type="button" data-full="media/steal-hack.jpg"><img src="media/steal-hack.jpg" alt="Wire-matching hacking minigame on an electrical box" loading="lazy" width="1068" height="599">Hacking minigame</button>
+      <button type="button" data-full="media/steal-dog.jpg"><img src="media/steal-dog.jpg" alt="Hedge maze with a guard dog" loading="lazy" width="717" height="397">Guard dog patrol</button>
+      <button type="button" data-full="media/steal-house.jpg"><img src="media/steal-house.jpg" alt="Indoor house level with a guard on patrol" loading="lazy" width="1069" height="610">Indoor level</button>
+      <button type="button" data-full="media/steal-caught.jpg"><img src="media/steal-caught.jpg" alt="Caught screen with the handcuffed thief" loading="lazy" width="1063" height="591">Caught screen</button>
+    </div>
+
+    <div class="facts" style="margin-top:32px">
+      <span class="chip">Unity 6000.3</span><span class="chip">C#</span><span class="chip">NavMesh</span><span class="chip">Physics raycasts</span><span class="chip">AudioMixer</span><span class="chip">PlayerPrefs</span><span class="chip">Mobile UI · safe area</span>
+    </div>
+    <div class="band-links">
+      <a href="https://github.com/enescelik00/ThiefGame" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      <a href="https://github.com/enescelik00/ThiefGame/blob/main/Assets/Scripts/GuardAI.cs" target="_blank" rel="noopener">GuardAI.cs ↗</a>
+      <a href="https://github.com/enescelik00/ThiefGame/tree/main/Assets/Scripts/Minigame" target="_blank" rel="noopener">Minigame scripts ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LUGE RUSH ================= -->
+<section class="band luge" id="luge-rush" aria-labelledby="luge-title">
+  <div class="wrap">
+    <p class="eyebrow">PC · 3D arcade racing · Unity 6 URP · <span class="status">solo, in development</span></p>
+    <h2 id="luge-title">Luge Rush</h2>
+    <p class="pitch measure">Gravity-powered summer-luge racing on low-poly mountain tracks. Draft behind rivals, drift to charge a boost, and race up to seven bots or friends in online rooms of eight.</p>
+    <div class="facts">
+      <span class="chip">3 tracks</span><span class="chip">4 sled types</span><span class="chip">0–7 bots · 3 difficulties</span><span class="chip">1–10 laps</span><span class="chip">8-sled rooms</span><span class="chip">1st & 3rd person camera</span>
+    </div>
+
+    <div class="video-wrap">
+      <video src="media/luge-trailer.mp4" poster="media/luge-poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="Luge Rush gameplay trailer, 19 seconds"></video>
+      <p class="footnote muted" style="margin-top:8px;font-size:13px">Captured from the Windows build with an automated driver. Turn on sound for the race music.</p>
+    </div>
+
+    <div class="built">
+      <div>
+        <h3>Racing feel</h3>
+        <p>Rigidbody arcade sled physics where speed comes from the slope. Drift charges a two-stage boost, slipstream kicks in 2–10 m behind a rival, a well-timed push at GO gives a start boost, and stuck or off-track sleds respawn at the last checkpoint.</p>
+      </div>
+      <div>
+        <h3>Tracks & rules</h3>
+        <p>Closed-loop spline tracks with banking, generated road mesh, curbs and rails. Checkpoints every ~50 m stop shortcutting backwards, and a cable lift pulls sleds back up at constant speed so race order holds.</p>
+      </div>
+      <div>
+        <h3>Bots & multiplayer</h3>
+        <p>Bot drivers that follow the track at three difficulty levels. Netcode for GameObjects with a dedicated race authority; direct-IP races verified across two instances, room codes through Unity Relay/Lobby in progress.</p>
+      </div>
+      <div>
+        <h3>World, art & audio</h3>
+        <p>Seeded procedural terrain and GPU-instanced scatter for three biomes. Sleds, riders and track kits generated by Blender Python scripts, with scripted rider animations and IK grip points. 24 sounds and the music synthesized in Python.</p>
+      </div>
+    </div>
+
+    <div class="gallery" aria-label="Luge Rush screenshots">
+      <button type="button" data-full="media/luge-forest-start.jpg"><img src="media/luge-forest-start.jpg" alt="Race start on the Green Valley forest track" loading="lazy" width="1280" height="720">Green Valley · forest</button>
+      <button type="button" data-full="media/luge-alpine-race.jpg"><img src="media/luge-alpine-race.jpg" alt="Sleds taking a curve on the Pine Summit alpine track" loading="lazy" width="1280" height="720">Pine Summit · alpine</button>
+      <button type="button" data-full="media/luge-canyon-race.jpg"><img src="media/luge-canyon-race.jpg" alt="Sleds heading to a rock arch on the Red Canyon desert track" loading="lazy" width="1280" height="720">Red Canyon · desert</button>
+      <button type="button" data-full="media/luge-forest-first-person.jpg"><img src="media/luge-forest-first-person.jpg" alt="First-person camera while riding" loading="lazy" width="1280" height="720">First-person camera</button>
+      <button type="button" data-full="media/luge-sled-select.jpg"><img src="media/luge-sled-select.jpg" alt="Sled selection screen with stat bars" loading="lazy" width="1280" height="720">Sled select</button>
+      <button type="button" data-full="media/luge-results.jpg"><img src="media/luge-results.jpg" alt="Race results screen" loading="lazy" width="1280" height="720">Results</button>
+    </div>
+
+    <div class="facts" style="margin-top:32px">
+      <span class="chip">Unity 6000.3 · URP</span><span class="chip">C#</span><span class="chip">Netcode for GameObjects</span><span class="chip">Cinemachine 3</span><span class="chip">Splines</span><span class="chip">Input System</span><span class="chip">Blender 5.2 + Python</span><span class="chip">Unity Test Framework</span>
+    </div>
+    <div class="band-links">
+      <a href="https://github.com/anilcay/Yar-Oyunu-Unity3D" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      <a href="https://github.com/anilcay/Yar-Oyunu-Unity3D/blob/main/Docs/GDD.md" target="_blank" rel="noopener">Game design doc ↗</a>
+      <a href="https://github.com/anilcay/Yar-Oyunu-Unity3D/blob/main/Docs/ARCHITECTURE.md" target="_blank" rel="noopener">Architecture ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TETHER RUSH ================= -->
+<section class="band tether" id="tether-rush" aria-labelledby="tether-title">
+  <div class="wrap">
+    <p class="eyebrow">Android · portrait · one-touch arcade runner · solo · build 0.9.0</p>
+    <h2 id="tether-title">Tether Rush</h2>
+    <div class="tether-mark" aria-hidden="true"><i></i><span></span><i></i></div>
+    <p class="pitch measure">Hold to spread two connected cores, release to pull them together. The tether gathers energy, the cores collect coins, and releasing at full energy fires a Pulse that opens the route ahead.</p>
+
+    <div class="tether-grid">
+      <div>
+        <video src="media/tether-trailer.mp4" poster="media/tether-poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="Tether Rush gameplay trailer, 15 seconds"></video>
+      </div>
+      <div style="min-width:0">
+        <div class="metrics">
+          <div><b>256/256</b><span>EditMode + PlayMode tests passing</span></div>
+          <div><b>−97–99%</b><span>GC.Alloc events after optimization</span></div>
+          <div><b>−43–61%</b><span>mean simulation-step time</span></div>
+          <div><b>25 + ∞</b><span>authored levels and Endless Flow</span></div>
+        </div>
+        <p class="footnote">Before/after figures come from matched, scripted routes in the Unity Editor (Mono). On-device profiling is the next step.</p>
+
+        <div class="built">
+          <div>
+            <h3>Core loop & levels</h3>
+            <p>Symmetric one-touch control, energy and Pulse rules, relay pads that open gates when the tether spans them, and amber locks only a full Pulse can move. Levels and the streamed endless course share one rule set; Endless pace ramps up to a cap.</p>
+          </div>
+          <div>
+            <h3>Progression & saves</h3>
+            <p>Persistent level progress, best scores and audio settings, with a tested migration from the older five-level save format.</p>
+          </div>
+          <div>
+            <h3>Performance</h3>
+            <p>Cached HUD text formatting, a static menu preview that stops redrawing, conservative collision pre-filtering and batched VFX updates, each measured against the same route before and after.</p>
+          </div>
+          <div>
+            <h3>Builds & pipeline</h3>
+            <p>Windows and signed Android ARM64 builds (API 25–36). Blender source kept apart from validated FBX exports; original audio rendered in Python.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery" aria-label="Tether Rush screenshots">
+      <button type="button" data-full="media/tether-gameplay.png"><img src="media/tether-gameplay.png" alt="Portrait gameplay with the two connected cores and obstacles" loading="lazy" width="540" height="960">Obstacle run</button>
+      <button type="button" data-full="media/tether-pulse.png"><img src="media/tether-pulse.png" alt="Charged Pulse hitting a marked target" loading="lazy" width="540" height="960">Pulse timing</button>
+      <button type="button" data-full="media/tether-relay.png"><img src="media/tether-relay.png" alt="Expanded tether activating a conductive relay" loading="lazy" width="540" height="960">Tether relay</button>
+      <button type="button" data-full="media/tether-level-map.png"><img src="media/tether-level-map.png" alt="Scrolling numbered level map" loading="lazy" width="540" height="960">25-level map</button>
+      <button type="button" data-full="media/tether-menu.png"><img src="media/tether-menu.png" alt="Main menu" loading="lazy" width="540" height="960">Main menu</button>
+    </div>
+
+    <div class="facts" style="margin-top:32px">
+      <span class="chip">Unity 6000.3 · URP 17.3</span><span class="chip">C#</span><span class="chip">Input System 1.19</span><span class="chip">Android</span><span class="chip">Blender + FBX pipeline</span><span class="chip">Unity Profiler · GC.Alloc</span>
+    </div>
+    <div class="band-links">
+      <a href="https://github.com/anilcay/TetherRush-MobileGame" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      <a href="https://github.com/anilcay/TetherRush-MobileGame/blob/main/Docs/QA/OPTIMIZATION_VALIDATION.md" target="_blank" rel="noopener">Optimization report ↗</a>
+      <a href="https://github.com/anilcay/TetherRush-MobileGame/blob/main/Docs/Planning/DECISIONS.md" target="_blank" rel="noopener">Design decision log ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROCESS ================= -->
+<section class="section" id="process" aria-labelledby="process-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">How I build</p>
+      <h2 id="process-title">One developer, run like a small team</h2>
+      <p class="measure">Steal &amp; Run was written by hand. My two solo games, Luge Rush and Tether Rush, were made with AI coding agents working in parallel roles: gameplay, level design, Blender art, VFX, QA. There I play lead: I set the design, split the work, and review and integrate every change before it lands.</p>
+    </div>
+    <ol class="pipeline">
+      <li><b>Design doc first</b><p>A GDD, a numbered decision log (43 entries in Tether Rush) and a status file that outlives any chat session.</p></li>
+      <li><b>Contracts between roles</b><p>An architecture doc fixes namespaces, core interfaces and animator parameters so gameplay, art and level work never collide.</p></li>
+      <li><b>Scoped tasks</b><p>Each agent gets one owned folder, its dependencies, acceptance criteria and an out-of-scope list. No two agents touch the same file.</p></li>
+      <li><b>Proof before merge</b><p>Zero compile errors, green EditMode/PlayMode suites, rendered Blender previews and builds. Unrun checks are reported as unrun.</p></li>
+      <li><b>Assets as code</b><p>Models, animations, sounds and trailer captures come from scripts, so they can be regenerated and reviewed like any other change.</p></li>
+    </ol>
+    <p class="tools-used measure"><strong>Tools:</strong> Claude Code and OpenAI Codex as agent teams, Unity batch mode and Test Framework, Blender Python, ffmpeg, Git with LFS, PowerShell build scripts.</p>
+  </div>
+</section>
+
+<!-- ================= BACKGROUND ================= -->
+<section class="section" id="background" aria-labelledby="bg-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Background</p>
+      <h2 id="bg-title">Experience & skills</h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="col-title">Experience</p>
+        <div class="xp">
+          <article>
+            <time>Aug – Sep 2026</time>
+            <div><h3>IT Infrastructure & Systems Support Intern</h3><p class="org">Total Technic · Atatürk Airport, İstanbul</p>
+            <p>Server migration with rack, Ethernet and fiber work; workstation setup and troubleshooting; firewall, monitoring and network diagnostics.</p></div>
+          </article>
+          <article>
+            <time>Jul – Aug 2026</time>
+            <div><h3>Software Development & R&D Intern</h3><p class="org">Digital Trade · Avcılar, İstanbul</p>
+            <p>Designed a PostgreSQL database from ~50 research sources, built Python pipelines that turn historical documents into JSON records, and shipped a React prototype with auth, roles and search.</p></div>
+          </article>
+          <article>
+            <time>Jan – Feb 2026</time>
+            <div><h3>Online Software Intern</h3><p class="org">Software Persona · TNC Group</p>
+            <p>Web, database and mobile application development in a remote team program.</p></div>
+          </article>
+          <article>
+            <time>Feb 2024 – Mar 2025</time>
+            <div><h3>AI Developer</h3><p class="org">TEAM 1618 · Teknofest autonomous vehicle</p>
+            <p>Owned the AI side of the team's autonomous vehicle and built its driving simulation in Unity.</p></div>
+          </article>
+          <article>
+            <time>Jun 2025 – now</time>
+            <div><h3>Head of Promotion & Design Committee</h3><p class="org">İUC Career Club</p>
+            <p>Run the club's social media and visual design.</p></div>
+          </article>
+          <article>
+            <time>2022 – Jul 2027</time>
+            <div><h3>B.Sc. Computer Engineering</h3><p class="org">İstanbul University-Cerrahpaşa · GPA 3.3 / 4.0</p></div>
+          </article>
+        </div>
+      </div>
+      <div>
+        <p class="col-title">Skills</p>
+        <div class="skills">
+          <div><h3>Unity & C#</h3><p>Unity 6 (URP), C#, ScriptableObjects, Input System, Cinemachine, Splines, Netcode for GameObjects, Relay/Lobby, Android builds</p></div>
+          <div><h3>Gameplay systems</h3><p>Stealth AI (NavMesh patrols, raycast vision cones, proximity detection), minigames, in-game economy and shop, arcade vehicle physics, bot AI and difficulty, race and checkpoint logic, procedural terrain and level generation, GPU instancing, save and progression systems, HUD and menus</p></div>
+          <div><h3>Performance & QA</h3><p>Unity Profiler, GC allocation reduction, EditMode / PlayMode tests, automated play-throughs, build verification</p></div>
+          <div><h3>Art & audio pipeline</h3><p>Blender modeling and scripted animation, Blender Python, FBX export validation, procedural audio in Python</p></div>
+          <div><h3>AI-assisted development</h3><p>Claude Code, OpenAI Codex, multi-agent orchestration, prompt engineering, spec-driven workflows, AI for autonomous driving (Teknofest)</p></div>
+          <div><h3>Also</h3><p>Python, Java, Dart, SQL, Git / Git LFS, React, Flutter, PostgreSQL</p></div>
+          <div><h3>Languages</h3><p>Turkish (native), English (upper-intermediate)</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" aria-labelledby="contact-title">
+  <div class="wrap">
+    <div class="contact-box">
+      <div>
+        <h2 id="contact-title">Let's make games.</h2>
+        <p class="measure">Looking for game developer internships and junior Unity roles. The source for all three games is public on GitHub.</p>
+      </div>
+      <div class="email-row">
+        <span class="email" id="email-text">anilcay149@gmail.com</span>
+        <button class="btn" type="button" id="copy-email" data-email="anilcay149@gmail.com">Copy</button>
+        <span class="toast" id="toast" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+  </div>
+</section>
+<footer><div class="wrap">Ahmet Anıl Çay · İstanbul · Screens and trailers captured from the games' own builds.</div></footer>
+
+<dialog id="lightbox" aria-label="Screenshot">
+  <button type="button" id="lb-close">Close</button>
+  <img id="lb-img" alt="">
+  <p id="lb-cap"></p>
+</dialog>
+
+<script>
+(function () {
+  var toast = document.getElementById('toast');
+  function copy(btn) {
+    var email = btn.getAttribute('data-email');
+    function done(msg) { toast.textContent = msg; setTimeout(function () { toast.textContent = ''; }, 2200); }
+    function fallback() {
+      var el = document.getElementById('email-text');
+      var r = document.createRange(); r.selectNodeContents(el);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      el.scrollIntoView({ block: 'center' });
+      done('Selected');
+    }
+    try {
+      navigator.clipboard.writeText(email).then(function () { done('Copied'); }, fallback);
+    } catch (e) { fallback(); }
+  }
+  document.getElementById('copy-email').addEventListener('click', function () { copy(this); });
+  document.getElementById('copy-email-top').addEventListener('click', function () { copy(this); });
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lb-img');
+  var lbCap = document.getElementById('lb-cap');
+  document.querySelectorAll('.gallery button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var img = b.querySelector('img');
+      lbImg.src = b.getAttribute('data-full');
+      lbImg.alt = img.alt;
+      lbCap.textContent = img.alt;
+      if (lb.showModal) lb.showModal();
+    });
+  });
+  document.getElementById('lb-close').addEventListener('click', function () { lb.close(); });
+  lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); });
+  }
+})();
+</script>
+
+</body>
+</html>
